@@ -1,0 +1,69 @@
+{
+  "name": "<%=project%>",
+  "version": "0.0.0",
+  "description": "<%=description%>",
+  >> if(license) {
+  "license": "<%=license%>",
+  >> }
+  "repository": "<%=username%>/<%=project%>",
+  "author": {
+    >> if(authorName) {
+    "name": "<%=authorName%>",
+    >> }
+    >> if(authorEmail) {
+    "email": "<%=authorEmail%>",
+    >> }
+    >> if(authorUrl) {
+    "url": "<%=authorUrl%>"
+    >> }
+  },
+  "engines": {
+    "node": ">=0.10.0"
+  },
+  "scripts": {
+    "test": "mocha"
+  },
+  >> if(cli) {
+  "bin": {
+    "<%=project%>": "bin.js"
+  },
+  "preferGlobal": true,
+  >> }
+  >> if(keywords.length) {
+    "keywords": <%-prettyKeywords%>,
+  >> }
+  "devDependencies": {
+    "chai": "*",
+    "chai-as-promised": "*",
+    "mocha": "*"
+  },
+  "dependencies": {
+    >> if(gulp) {
+    "gulp": "*",
+    "browserify": "*",
+    "gulp-livereload": "*",
+    "gulp-notify": "*",
+    "gulp-sourcemaps": "*",
+    "vinyl-source-stream": "*",
+    "vinyl-buffer": "*",
+    >> if(web)
+    "event-stream": "*",
+    "gulp-autoprefixer": "*",
+    "gulp-concat": "*",
+    "gulp-minifycss": "*",
+    "gulp-plumber": "*",
+    "gulp-rename": "*",
+    "gulp-sass": "*",
+    "gulp-stylus": "*",
+    "gulp-util": "*",
+    "nib": "*",
+    >> }
+    >> if(web && isStatic) {
+    "gulp-jade": "*",
+    >> }
+    >> if(cli) {
+    "commander": "*",
+    "get-stdin-promise": "*",
+    >> }
+  }
+}
