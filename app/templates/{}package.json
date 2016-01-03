@@ -1,11 +1,11 @@
 {
   "name": "<%=project%>",
   "version": "0.0.0",
-  "description": "<%=description%>",
+  "description": "<%-description%>",
   >> if(license) {
   "license": "<%=license%>",
   >> }
-  "repository": "<%=username%>/<%=project%>",
+  "repository": "https://github.com/<%=username%>/<%=project%>",
   "author": {
     >> if(authorName) {
     "name": "<%=authorName%>",
@@ -30,7 +30,7 @@
   "preferGlobal": true,
   >> }
   >> if(keywords.length) {
-    "keywords": <%-prettyKeywords%>,
+    "keywords": <%-keywordsFormatted%>,
   >> }
   "devDependencies": {
     "chai": "*",

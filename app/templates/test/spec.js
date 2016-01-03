@@ -1,7 +1,7 @@
 var chai = require('chai')
 var chaiAsPromised = require('chai-as-promised')
 var should = chai.should()
-<%=camelize(project)%> = require '../index.js'
+var <%=camelize(project)%> = require('../index.js')
 
 chai.use(chaiAsPromised)
 

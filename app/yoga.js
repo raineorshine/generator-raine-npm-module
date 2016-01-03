@@ -1,4 +1,4 @@
-{
+module.exports = {
   "prompts": [
     {
       "type": "text",
@@ -12,13 +12,14 @@
     },
     {
       "type": "text",
-      "name": "repo",
-      "message": "Repository"
+      "name": "keywords",
+      "message": "Keywords (comma-separated)"
     },
     {
       "type": "text",
-      "name": "keywords",
-      "message": "Keywords (comma-separated)"
+      "name": "username",
+      "message": "Github Username",
+      "store": true
     },
     {
       "type": "text",
@@ -49,22 +50,31 @@
       "type": "confirm",
       "name": "gulp",
       "message": "Are you using gulp?",
-      "default": true
+      "default": false
     },
     {
       "type": "confirm",
       "name": "web",
-      "message": "Is this a web application?"
-    },
-    {
-      "type": "confirm",
-      "name": "cli",
-      "message": "Is this a command-line application?"
+      "message": "Is this a web application?",
+      "default": false
     },
     {
       "type": "confirm",
       "name": "isStatic",
-      "message": "Is this a static site?"
+      "message": "Is this a static site?",
+      "default": false,
+      "when": function(props) {
+        return props.web
+      }
+    },
+    {
+      "type": "confirm",
+      "name": "cli",
+      "message": "Is this a command-line application?",
+      "default": false,
+      "when": function(props) {
+        return !props.web
+      }
     }
   ]
 }

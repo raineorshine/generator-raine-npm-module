@@ -1,13 +1,18 @@
+require('array.prototype.find')
 var generators = require('yeoman-generator')
 var path       = require('path')
 var camelize   = require('camelize')
 var compact    = require('lodash.compact')
 var assign     = require('lodash.assign')
-// var find       = require('lodash.find')
 var prefixnote = require('prefixnote')
 var chalk      = require('chalk')
 var striate    = require('gulp-striate')
+var R          = require('ramda')
+var fileExists = require('file-exists')
 var pkg        = require('../package.json')
+
+// files that should never be copied
+var ignore = ['.DS_Store']
 
 // if the package name is generator-yoga then we are in creation mode
 // which will recursively copy this generator itself and give it a new
@@ -37,14 +42,15 @@ module.exports = generators.Base.extend({
 
     // parse yoga.json and report error messages for missing/invalid
     try {
-      this.yogaFile = require(createMode ? '../create/yoga.json' : './yoga.json')
+      this.yogaFile = require(createMode ? '../create/yoga.json' :
+        fileExists('./yoga.json') ? './yoga.json' : './yoga.js')
     }
     catch(e) {
       if(e.code === 'MODULE_NOT_FOUND') {
-        console.log(chalk.red('No yoga.json found. Proceeding with simple copy.'))
+        console.log(chalk.red('No yoga file found. Proceeding with simple copy.'))
       }
       else {
-        console.log(chalk.red('Invalid yoga.json'))
+        console.log(chalk.red('Invalid yoga file'))
         console.log(chalk.red(e))
       }
     }
@@ -67,11 +73,10 @@ module.exports = generators.Base.extend({
     }
 
     // set the default project name to the destination folder name
-    find = Array.prototype.find.bind(this.yogaFile.prompts) // TEMP
-    var namePrompt = this.yogaFile.prompts.find(function (prompt) {
-      return prompt.name === 'name'
-    })
-    namePrompt.default = path.basename(this.destinationPath())
+    var projectPrompt = this.yogaFile.prompts.find(R.propEq('name', 'project'))
+    if(projectPrompt) {
+      projectPrompt.default = path.basename(this.env.cwd)
+    }
 
     this.prompt(this.yogaFile.prompts, function (props) {
 
@@ -116,8 +121,10 @@ module.exports = generators.Base.extend({
         }
       })
 
-      // copy the package.json
+      // copy the package.json and README
       this.fs.copyTpl(path.join(__dirname, '../create/{}package.json'), this.destinationPath('package.json'), this.viewData)
+
+      this.fs.copyTpl(path.join(__dirname, '../create/README.md'), this.destinationPath('README.md'), this.viewData)
 
       done()
     }
@@ -125,12 +132,21 @@ module.exports = generators.Base.extend({
       this.registerTransformStream(striate(this.viewData))
 
       prefixnote.parseFiles(this.templatePath(), this.viewData)
+
+        // copy each file that is traversed
         .on('data', function (file) {
-          var from = file.original
-          var to = this.destinationPath(path.relative(this.templatePath(), file.parsed))
-          console.log(from, to)
-          this.fs.copyTpl(from, to, this.viewData)
+          var filename = path.basename(file.original)
+
+          // always ignore files like .DS_Store
+          if(ignore.indexOf(filename) === -1) {
+            var from = file.original
+            var to = this.destinationPath(path.relative(this.templatePath(), file.parsed))
+
+            // copy the file with templating
+            this.fs.copyTpl(from, to, this.viewData)
+          }
         }.bind(this))
+
         .on('end', done)
         .on('error', done)
     }
