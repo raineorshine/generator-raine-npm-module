@@ -16,7 +16,7 @@ var sass          = require('gulp-sass')
 var stylus        = require('gulp-stylus')
 var nib           = require('nib')
 >> }
->> if(web && isStatic) {
+>> if(isStatic) {
 var jade          = require('gulp-jade')
 >> }
 var notifyOnError = notify.onError("<%= error.message %>")
@@ -29,7 +29,7 @@ var config = {
   destCss: 'public/style',
   cssConcatTarget: 'main.css',
   >> }
-  >> if(web && isStatic) {
+  >> if(isStatic) {
   srcViews: 'src/*.jade',
   destViews: 'public',
   >> }
@@ -63,7 +63,7 @@ gulp.task('styles', function() {
 })
 >> }
 
->> if(web && isStatic)
+>> if(isStatic)
 gulp.task('views', function () {
   return gulp.src(config.srcViews)
     .pipe(jade())
@@ -87,7 +87,7 @@ gulp.task('watch', function () {
   >> if(web) {
   gulp.watch([config.srcStylus, config.srcSass], ['styles'])
   >> }
-  >> if(web && isStatic)
+  >> if(isStatic)
   gulp.watch(config.srcViews, ['views'])
   >> }
   gulp.watch(config.srcScripts, ['scripts'])
@@ -96,7 +96,7 @@ gulp.task('watch', function () {
 >>
 var tasks = ['scripts']
 if(web) tasks.push('styles')
-if(web && isStatic) tasks.push('views')
+if(isStatic) tasks.push('views')
 <<
 
-gulp.task('default', ['styles', 'scripts', 'views'])
+gulp.task('default', <%=JSON.stringify(tasks)%>)
