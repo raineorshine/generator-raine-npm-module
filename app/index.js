@@ -158,7 +158,7 @@ module.exports = generators.Base.extend({
       var tasksFormatted = stringifySimple(tasks)
 
       // populate viewData from the prompts and formatted values
-      this.viewData = R.merge(props, generateOptions(props.options), {
+      this.viewData = R.mergeAll([props, generateOptions(props.options), {
         // set some defaults for prompts that are skipped
         isStatic: false,
         cli: false,
@@ -166,10 +166,7 @@ module.exports = generators.Base.extend({
         keywordsFormatted: keywordsFormatted,
         dependenciesFormatted: dependenciesFormatted,
         tasksFormatted: tasksFormatted
-      })
-
-      console.log(this.viewData)
-      process.exit(1)
+      }])
 
       done()
     }.bind(this))
