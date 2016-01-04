@@ -18,6 +18,32 @@ var ignore = ['.DS_Store']
 // project name so that subsequent runs will generate from app/templates
 var createMode = pkg.name === 'generator-yoga'
 
+// map inquirer options to names
+var optionLabels = {
+  gulp: 'Gulp',
+  babel: 'Babel',
+  web: 'Web App',
+  isStatic: 'Static Site',
+  cli: 'CLI'
+}
+
+// generate a complete options object from an array of choices
+/*
+  @param choices   ['gulp', 'babel']
+  @returns {
+    gulp: true,
+    babel: true,
+    web: false,
+    isStatic: false,
+    cli: false
+  }
+*/
+function generateOptions(choices) {
+  return R.fromPairs(Object.keys(optionLabels).map(function (key) {
+    return [key, R.contains(optionLabels[key], choices)]
+  }))
+}
+
 // parse an array from a string
 function parseArray(str) {
   return R.filter(R.identity, str.split(',').map(R.invoker(0, 'trim')))
@@ -100,7 +126,7 @@ module.exports = generators.Base.extend({
         props.babel ? [
           'gulp-babel',
           'babel-preset-es2015',
-        ] : []
+        ] : [],
         props.web ? [
           'event-stream',
           'gulp-autoprefixer',
@@ -132,7 +158,7 @@ module.exports = generators.Base.extend({
       var tasksFormatted = stringifySimple(tasks)
 
       // populate viewData from the prompts and formatted values
-      this.viewData = R.merge(props, {
+      this.viewData = R.merge(props, generateOptions(props.options), {
         // set some defaults for prompts that are skipped
         isStatic: false,
         cli: false,
@@ -141,6 +167,9 @@ module.exports = generators.Base.extend({
         dependenciesFormatted: dependenciesFormatted,
         tasksFormatted: tasksFormatted
       })
+
+      console.log(this.viewData)
+      process.exit(1)
 
       done()
     }.bind(this))
