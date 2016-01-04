@@ -54,6 +54,15 @@ module.exports = {
     },
     {
       "type": "confirm",
+      "name": "babel",
+      "message": "Are you using babel?",
+      "default": false,
+      "when": function(props) {
+        return props.gulp
+      }
+    },
+    {
+      "type": "confirm",
       "name": "web",
       "message": "Is this a web application?",
       "default": false

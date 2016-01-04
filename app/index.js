@@ -100,32 +100,36 @@ module.exports = generators.Base.extend({
       // build and format dependencies
       var dependencies = R.sortBy(R.identity, R.flatten([
         props.gulp ? [
-          "gulp",
-          "browserify",
-          "gulp-livereload",
-          "gulp-notify",
-          "gulp-sourcemaps",
-          "vinyl-source-stream",
-          "vinyl-buffer",
+          'gulp',
+          'browserify',
+          'gulp-livereload',
+          'gulp-notify',
+          'gulp-sourcemaps',
+          'vinyl-source-stream',
+          'vinyl-buffer',
         ] : [],
+        props.babel ? [
+          'gulp-babel',
+          'babel-preset-es2015',
+        ] : []
         props.web ? [
-          "event-stream",
-          "gulp-autoprefixer",
-          "gulp-concat",
-          "gulp-minify-css",
-          "gulp-plumber",
-          "gulp-rename",
-          "gulp-sass",
-          "gulp-stylus",
-          "gulp-util",
-          "nib",
+          'event-stream',
+          'gulp-autoprefixer',
+          'gulp-concat',
+          'gulp-minify-css',
+          'gulp-plumber',
+          'gulp-rename',
+          'gulp-sass',
+          'gulp-stylus',
+          'gulp-util',
+          'nib',
         ] : [],
         props.isStatic ? [
-          "gulp-jade",
+          'gulp-jade',
         ] : [],
         props.cli ? [
-          "commander",
-          "get-stdin-promise",
+          'commander',
+          'get-stdin-promise',
         ] : []
       ]))
       var dependenciesObject = R.zipObj(dependencies, R.repeat('*', dependencies.length))

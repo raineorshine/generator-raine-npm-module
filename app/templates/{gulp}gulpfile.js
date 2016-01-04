@@ -5,6 +5,9 @@ var notify        = require('gulp-notify')
 var sourcemaps    = require('gulp-sourcemaps')
 var source        = require('vinyl-source-stream')
 var buffer        = require('vinyl-buffer')
+>> if(babel) {
+var babel         = require("gulp-babel")
+>> }
 >> if(web) {
 var es            = require('event-stream')
 var autoprefixer  = require('gulp-autoprefixer')
@@ -78,6 +81,11 @@ gulp.task('scripts', function () {
     .pipe(source(config.destBundle))
     .pipe(buffer())
     .pipe(sourcemaps.init({loadMaps: true}))
+    >> if(babel) {
+    .pipe(babel({
+      presets: ['es2015']
+    }))
+    >> }
     .pipe(sourcemaps.write('./'))
     .pipe(gulp.dest(config.destScripts))
     .pipe(livereload({ auto: false }))
