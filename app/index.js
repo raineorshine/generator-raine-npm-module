@@ -10,6 +10,7 @@ var striate    = require('gulp-striate')
 var R          = require('ramda')
 var fileExists = require('file-exists')
 var pkg        = require('../package.json')
+var indent     = require('indent-string')
 
 // files that should never be copied
 var ignore = ['.DS_Store']
@@ -19,19 +20,24 @@ var ignore = ['.DS_Store']
 // project name so that subsequent runs will generate from app/templates
 var createMode = pkg.name === 'generator-yoga'
 
-// prettifies a string of keywords to display each one on a separate line with correct indentation in the package.json
-function prettyKeywords(keywords) {
+// parse an array from a string
+function parseArray(str) {
+  return compact(
+    str.split(',')
+      .map(function(s) { return s.trim() })
+  )
+}
 
-  // convert the keywords string into an array
-  keywordArray = compact( // remove empty values
-    keywords.split(',')
-    .map(function(s) { return s.trim() }) // trim
-  );
+// stringify an object and indent everything after the opening line
+function stringifyIndented(value, chr, n) {
+  return indent(JSON.stringify(value, null, n), chr, n).slice(chr.length * n)
+}
 
-  // prettify the keywordArray to display each one on a separate line with correct indentation in the package.json
-  return JSON.stringify(keywordArray)
-    .replace(/([[,])/g, '$1\n    ') // add '    \n' after each item
-    .replace(/]/g, '\n  ]') // add a newline before the closing ]
+// do a simple stringify on an object but use single quotes and spaces
+function stringifySimple(value) {
+  return JSON.stringify(value)
+    .replace(/"/g, '\'')
+    .replace(/,/g, ', ')
 }
 
 module.exports = generators.Base.extend({
@@ -65,7 +71,7 @@ module.exports = generators.Base.extend({
 
   prompting: function () {
 
-    var done = this.async();
+    var done = this.async()
 
     if(this.yogaFile && !(this.yogaFile.prompts && this.yogaFile.prompts.length)) {
       console.log(chalk.red('No prompts in yoga.json. Proceeding with simple copy.'))
@@ -88,11 +94,59 @@ module.exports = generators.Base.extend({
         return
       }
 
-      // add prompt results to the viewData
-      assign(this.viewData, props)
-
       // format keywords
-      this.viewData.keywordsFormatted = props.keywords ? prettyKeywords(props.keywords) : null
+      var keywordsFormatted = stringifyIndented(parseArray(props.keywords), ' ', 2)
+
+      // build and format dependencies
+      var dependencies = R.sortBy(R.identity, R.flatten([
+        props.gulp ? [
+          "gulp",
+          "browserify",
+          "gulp-livereload",
+          "gulp-notify",
+          "gulp-sourcemaps",
+          "vinyl-source-stream",
+          "vinyl-buffer",
+        ] : [],
+        props.web ? [
+          "event-stream",
+          "gulp-autoprefixer",
+          "gulp-concat",
+          "gulp-minify-css",
+          "gulp-plumber",
+          "gulp-rename",
+          "gulp-sass",
+          "gulp-stylus",
+          "gulp-util",
+          "nib",
+        ] : [],
+        props.isStatic ? [
+          "gulp-jade",
+        ] : [],
+        props.cli ? [
+          "commander",
+          "get-stdin-promise",
+        ] : []
+      ]))
+      var dependenciesObject = R.zipObj(dependencies, R.repeat('*', dependencies.length))
+      var dependenciesFormatted = stringifyIndented(dependenciesObject, ' ', 2)
+
+      var tasks = R.flatten([
+        'scripts',
+        props.web ? 'styles' : [],
+        props.isStatic ? 'views' : []
+      ])
+      var tasksFormatted = stringifySimple(tasks)
+
+      // add prompt results to the viewData
+      // set some defaults for prompts that are skipped
+      assign(this.viewData, {
+        isStatic: false,
+        cli: false,
+        keywordsFormatted: keywordsFormatted,
+        dependenciesFormatted: dependenciesFormatted,
+        tasksFormatted: tasksFormatted
+      }, props)
 
       done()
     }.bind(this))
@@ -102,7 +156,7 @@ module.exports = generators.Base.extend({
   // parsing filenames using prefixnote and running them through striate
   writing: function () {
 
-    var done = this.async();
+    var done = this.async()
 
     if(createMode) {
 

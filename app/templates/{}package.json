@@ -30,40 +30,11 @@
   "preferGlobal": true,
   >> }
   >> if(keywords.length) {
-    "keywords": <%-keywordsFormatted%>,
+  "keywords": <%-keywordsFormatted%>,
   >> }
   "devDependencies": {
     "chai": "*",
-    "chai-as-promised": "*",
     "mocha": "*"
   },
-  "dependencies": {
-    >> if(gulp) {
-    "gulp": "*",
-    "browserify": "*",
-    "gulp-livereload": "*",
-    "gulp-notify": "*",
-    "gulp-sourcemaps": "*",
-    "vinyl-source-stream": "*",
-    "vinyl-buffer": "*",
-    >> if(web)
-    "event-stream": "*",
-    "gulp-autoprefixer": "*",
-    "gulp-concat": "*",
-    "gulp-minifycss": "*",
-    "gulp-plumber": "*",
-    "gulp-rename": "*",
-    "gulp-sass": "*",
-    "gulp-stylus": "*",
-    "gulp-util": "*",
-    "nib": "*",
-    >> }
-    >> if(web && isStatic) {
-    "gulp-jade": "*",
-    >> }
-    >> if(cli) {
-    "commander": "*",
-    "get-stdin-promise": "*",
-    >> }
-  }
+  "dependencies": <%-dependenciesFormatted%>
 }

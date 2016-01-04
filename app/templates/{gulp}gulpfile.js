@@ -19,7 +19,7 @@ var nib           = require('nib')
 >> if(isStatic) {
 var jade          = require('gulp-jade')
 >> }
-var notifyOnError = notify.onError("<%= error.message %>")
+var notifyOnError = <%-'<' + '%-\'notify.onError("<\' + \'%= error.message %\' + \'>")\'%' + '>'%>
 
 var config = {
   >> if(web) {
@@ -61,17 +61,17 @@ gulp.task('styles', function() {
     .pipe(gulp.dest(config.destCss))
     .pipe(livereload({ auto: false }))
 })
->> }
 
->> if(isStatic)
+>> }
+>> if(isStatic) {
 gulp.task('views', function () {
   return gulp.src(config.srcViews)
     .pipe(jade())
     .pipe(gulp.dest(config.destViews))
     .pipe(livereload({ auto: false }))
 })
->> }
 
+>> }
 gulp.task('scripts', function () {
   return browserify(config.srcAppScript)
     .bundle()
@@ -87,16 +87,10 @@ gulp.task('watch', function () {
   >> if(web) {
   gulp.watch([config.srcStylus, config.srcSass], ['styles'])
   >> }
-  >> if(isStatic)
+  >> if(isStatic) {
   gulp.watch(config.srcViews, ['views'])
   >> }
   gulp.watch(config.srcScripts, ['scripts'])
 })
 
->>
-var tasks = ['scripts']
-if(web) tasks.push('styles')
-if(isStatic) tasks.push('views')
-<<
-
-gulp.task('default', <%=JSON.stringify(tasks)%>)
+gulp.task('default', <%- tasksFormatted %>)
