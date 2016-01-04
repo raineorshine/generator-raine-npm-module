@@ -2,15 +2,13 @@ require('array.prototype.find')
 var generators = require('yeoman-generator')
 var path       = require('path')
 var camelize   = require('camelize')
-var compact    = require('lodash.compact')
-var assign     = require('lodash.assign')
 var prefixnote = require('prefixnote')
 var chalk      = require('chalk')
 var striate    = require('gulp-striate')
 var R          = require('ramda')
 var fileExists = require('file-exists')
-var pkg        = require('../package.json')
 var indent     = require('indent-string')
+var pkg        = require('../package.json')
 
 // files that should never be copied
 var ignore = ['.DS_Store']
@@ -22,10 +20,7 @@ var createMode = pkg.name === 'generator-yoga'
 
 // parse an array from a string
 function parseArray(str) {
-  return compact(
-    str.split(',')
-      .map(function(s) { return s.trim() })
-  )
+  return R.filter(R.identity, str.split(',').map(R.invoker(0, 'trim')))
 }
 
 // stringify an object and indent everything after the opening line
@@ -59,12 +54,6 @@ module.exports = generators.Base.extend({
         console.log(chalk.red('Invalid yoga file'))
         console.log(chalk.red(e))
       }
-    }
-
-    // this.viewData is passed to copyTpl
-    // it is populated with the prompt results during prompting()
-    this.viewData = {
-      camelize
     }
 
   },
@@ -142,15 +131,16 @@ module.exports = generators.Base.extend({
       ])
       var tasksFormatted = stringifySimple(tasks)
 
-      // add prompt results to the viewData
-      // set some defaults for prompts that are skipped
-      assign(this.viewData, {
+      // populate viewData from the prompts and formatted values
+      this.viewData = R.merge(props, {
+        // set some defaults for prompts that are skipped
         isStatic: false,
         cli: false,
+        camelize: camelize,
         keywordsFormatted: keywordsFormatted,
         dependenciesFormatted: dependenciesFormatted,
         tasksFormatted: tasksFormatted
-      }, props)
+      })
 
       done()
     }.bind(this))
