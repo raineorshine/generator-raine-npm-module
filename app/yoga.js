@@ -50,7 +50,13 @@ module.exports = {
       type: 'checkbox',
       name: 'options',
       message: 'Options:',
-      choices: ['Gulp', 'Babel', 'Web App', 'Static Site', 'CLI'],
+      choices: [
+        { name: 'Gulp', value: 'gulp' },
+        { name: 'Babel', value: 'babel' },
+        { name: 'Web App', value: 'web' },
+        { name: 'Static Site', value: 'isStatic' },
+        { name: 'CLI', value: 'cli' }
+      ]
     }
   ]
 }

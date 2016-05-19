@@ -18,15 +18,6 @@ var ignore = ['.DS_Store']
 // project name so that subsequent runs will generate from app/templates
 var createMode = pkg.name === 'generator-yoga'
 
-// map inquirer options to names
-var optionLabels = {
-  gulp: 'Gulp',
-  babel: 'Babel',
-  web: 'Web App',
-  isStatic: 'Static Site',
-  cli: 'CLI'
-}
-
 // generate a complete options object from an array of choices
 /*
   @param choices   ['gulp', 'babel']
@@ -38,10 +29,7 @@ var optionLabels = {
     cli: false
   }
 */
-function generateOptions(choices) {
-  return R.fromPairs(Object.keys(optionLabels).map(function (key) {
-    return [key, R.contains(optionLabels[key], choices)]
-  }))
+function generateOptions(selected) {
 }
 
 // parse an array from a string
@@ -109,8 +97,25 @@ module.exports = generators.Base.extend({
         return
       }
 
+      // extract all possible choices from the yogafile
+      var allChoices = R.find(R.propEq('name', 'options'), this.yogaFile.prompts)
+        .choices.map(R.prop('value'))
+
+      // map each choice to true/false, whether it was selected or not
+      var choicesObject = R.fromPairs(allChoices.map(function (choice) {
+        return [choice, R.contains(choice, props.options)]
+      }))
+
+      // merge selected properties with defaults and converted options
+      props = R.mergeAll([{
+        // set some defaults for prompts that are skipped
+        isStatic: false,
+        cli: false,
+        camelize: camelize,
+      }, props, choicesObject])
+
       // format keywords
-      var keywordsFormatted = stringifyIndented(parseArray(props.keywords), ' ', 2)
+      props.keywordsFormatted = stringifyIndented(parseArray(props.keywords), ' ', 2)
 
       // build and format dependencies
       var dependencies = R.sortBy(R.identity, R.flatten([
@@ -148,25 +153,16 @@ module.exports = generators.Base.extend({
         ] : []
       ]))
       var dependenciesObject = R.zipObj(dependencies, R.repeat('*', dependencies.length))
-      var dependenciesFormatted = stringifyIndented(dependenciesObject, ' ', 2)
+      props.dependenciesFormatted = stringifyIndented(dependenciesObject, ' ', 2)
 
       var tasks = R.flatten([
         'scripts',
         props.web ? 'styles' : [],
         props.isStatic ? 'views' : []
       ])
-      var tasksFormatted = stringifySimple(tasks)
+      props.tasksFormatted = stringifySimple(tasks)
 
-      // populate viewData from the prompts and formatted values
-      this.viewData = R.mergeAll([props, generateOptions(props.options), {
-        // set some defaults for prompts that are skipped
-        isStatic: false,
-        cli: false,
-        camelize: camelize,
-        keywordsFormatted: keywordsFormatted,
-        dependenciesFormatted: dependenciesFormatted,
-        tasksFormatted: tasksFormatted
-      }])
+      this.viewData = props;
 
       done()
     }.bind(this))
