@@ -21,7 +21,11 @@
     "node": ">=0.10.0"
   },
   "scripts": {
+    >> if(babel) {
+    "test": "mocha --compilers babel-register"
+    >> } else {
     "test": "mocha"
+    >> }
   },
   >> if(cli) {
   "bin": {

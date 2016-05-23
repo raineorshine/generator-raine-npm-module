@@ -54,6 +54,7 @@ module.exports = {
         { name: 'Gulp', value: 'gulp' },
         { name: 'Babel', value: 'babel' },
         { name: 'Web App', value: 'web' },
+        { name: 'React', value: 'react' },
         { name: 'Static Site', value: 'isStatic' },
         { name: 'CLI', value: 'cli' }
       ]

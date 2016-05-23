@@ -13,25 +13,6 @@ var pkg        = require('../package.json')
 // files that should never be copied
 var ignore = ['.DS_Store']
 
-// if the package name is generator-yoga then we are in creation mode
-// which will recursively copy this generator itself and give it a new
-// project name so that subsequent runs will generate from app/templates
-var createMode = pkg.name === 'generator-yoga'
-
-// generate a complete options object from an array of choices
-/*
-  @param choices   ['gulp', 'babel']
-  @returns {
-    gulp: true,
-    babel: true,
-    web: false,
-    isStatic: false,
-    cli: false
-  }
-*/
-function generateOptions(selected) {
-}
-
 // parse an array from a string
 function parseArray(str) {
   return R.filter(R.identity, str.split(',').map(R.invoker(0, 'trim')))
@@ -57,8 +38,7 @@ module.exports = generators.Base.extend({
 
     // parse yoga.json and report error messages for missing/invalid
     try {
-      this.yogaFile = require(createMode ? '../create/yoga.json' :
-        fileExists('./yoga.json') ? './yoga.json' : './yoga.js')
+      this.yogaFile = require(fileExists('./yoga.json') ? './yoga.json' : './yoga.js')
     }
     catch(e) {
       if(e.code === 'MODULE_NOT_FOUND') {
@@ -67,6 +47,7 @@ module.exports = generators.Base.extend({
       else {
         console.log(chalk.red('Invalid yoga file'))
         console.log(chalk.red(e))
+        throw e;
       }
     }
 
@@ -88,14 +69,6 @@ module.exports = generators.Base.extend({
     }
 
     this.prompt(this.yogaFile.prompts, function (props) {
-
-      // disallow a project name of generator-yoga
-      if(createMode && props.name === 'generator-yoga') {
-        var error = 'You may not name your generator "generator-yoga".'
-        this.log.error(error)
-        done(error)
-        return
-      }
 
       // extract all possible choices from the yogafile
       var allChoices = R.find(R.propEq('name', 'options'), this.yogaFile.prompts)
@@ -122,6 +95,7 @@ module.exports = generators.Base.extend({
         props.gulp ? [
           'gulp',
           'browserify',
+          'gulp-cached',
           'gulp-livereload',
           'gulp-notify',
           'gulp-sourcemaps',
@@ -129,8 +103,16 @@ module.exports = generators.Base.extend({
           'vinyl-buffer',
         ] : [],
         props.babel ? [
-          'gulp-babel',
+          'babel-register',
           'babel-preset-es2015',
+        ] : [],
+        props.babel && props.react ? [
+          'react',
+          'react-dom',
+          'babel-preset-react',
+        ] : [],
+        props.gulp && props.babel ? [
+          'babelify',
         ] : [],
         props.web ? [
           'event-stream',
@@ -138,6 +120,7 @@ module.exports = generators.Base.extend({
           'gulp-concat',
           'gulp-minify-css',
           'gulp-plumber',
+          'gulp-progeny',
           'gulp-rename',
           'gulp-sass',
           'gulp-stylus',
@@ -156,9 +139,9 @@ module.exports = generators.Base.extend({
       props.dependenciesFormatted = stringifyIndented(dependenciesObject, ' ', 2)
 
       var tasks = R.flatten([
-        'scripts',
-        props.web ? 'styles' : [],
-        props.isStatic ? 'views' : []
+        'script',
+        props.web ? 'style' : [],
+        props.isStatic ? 'view' : []
       ])
       props.tasksFormatted = stringifySimple(tasks)
 
@@ -174,52 +157,26 @@ module.exports = generators.Base.extend({
 
     var done = this.async()
 
-    if(createMode) {
+    this.registerTransformStream(striate(this.viewData))
 
-      // copy yoga-generator itself
-      this.fs.copy(path.join(__dirname, '../'), this.destinationPath(), {
-        globOptions: {
-          dot: true,
-          ignore: [
-            '**/.git',
-            '**/.git/**/*',
-            '**/node_modules',
-            '**/node_modules/**/*',
-            '**/test/**/*',
-            '**/create/**/*'
-          ]
+    prefixnote.parseFiles(this.templatePath(), this.viewData)
+
+      // copy each file that is traversed
+      .on('data', function (file) {
+        var filename = path.basename(file.original)
+
+        // always ignore files like .DS_Store
+        if(ignore.indexOf(filename) === -1) {
+          var from = file.original
+          var to = this.destinationPath(path.relative(this.templatePath(), file.parsed))
+
+          // copy the file with templating
+          this.fs.copyTpl(from, to, this.viewData)
         }
-      })
+      }.bind(this))
 
-      // copy the package.json and README
-      this.fs.copyTpl(path.join(__dirname, '../create/{}package.json'), this.destinationPath('package.json'), this.viewData)
-
-      this.fs.copyTpl(path.join(__dirname, '../create/README.md'), this.destinationPath('README.md'), this.viewData)
-
-      done()
-    }
-    else {
-      this.registerTransformStream(striate(this.viewData))
-
-      prefixnote.parseFiles(this.templatePath(), this.viewData)
-
-        // copy each file that is traversed
-        .on('data', function (file) {
-          var filename = path.basename(file.original)
-
-          // always ignore files like .DS_Store
-          if(ignore.indexOf(filename) === -1) {
-            var from = file.original
-            var to = this.destinationPath(path.relative(this.templatePath(), file.parsed))
-
-            // copy the file with templating
-            this.fs.copyTpl(from, to, this.viewData)
-          }
-        }.bind(this))
-
-        .on('end', done)
-        .on('error', done)
-    }
+      .on('end', done)
+      .on('error', done)
   },
 
   end: function () {
