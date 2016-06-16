@@ -13,7 +13,7 @@ $ npm install --save <%=cli ? '-g ' : ''%><%=project%>
 ## Usage
 
 ```js
-var <%=camelize(project)%> = require('<%=project%>')
+import * as <%=camelize(project)%> from '<%=project%>'
 ```
 
 ## License

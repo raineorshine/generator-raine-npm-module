@@ -1,9 +1,9 @@
-var chai = require('chai')
-var should = chai.should()
-var <%=camelize(project)%> = require('../index.js')
+import * as chai from 'chai'
+import * as <%=camelize(project)%> from '../index.js'
+const should = chai.should()
 
-describe('<%=camelize(project)%>', function () {
-  it('should do something', function () {
+describe('<%=camelize(project)%>', () => {
+  it('should do something', () => {
     <%=camelize(project)%>.doSomething().should.equal(12345)
   })
 })

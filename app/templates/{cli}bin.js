@@ -1,25 +1,21 @@
 #! /usr/bin/env node
 
-var com = require('commander')
-var stdin = require('get-stdin-promise')
-var pkg = require('./package.json')
+import * as com from 'commander'
+import * as stdin from 'get-stdin-promise'
+import * as pkg from './package.json'
 
-var extendedHelp = [
-  '',
-  '',
-  pkg.description,
-  '',
-  'Here is an example:',
-  '$ blah blah blah'
-].join('\n  ')
+const extendedHelp = `
+
+${pkg.description}
+
+Here is an example:
+$ blah blah blah`
 
 com
   .version(pkg.version)
   .usage(extendedHelp)
   .parse(process.argv)
 
-stdin.then(function(input) {
-    console.log('PROCESS INPUT HERE');
-  })
- .then(null, console.log)
-
+stdin.then(input => {
+  console.log('PROCESS INPUT HERE');
+})
