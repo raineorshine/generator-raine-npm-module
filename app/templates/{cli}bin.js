@@ -3,6 +3,7 @@
 import * as com from 'commander'
 import * as stdin from 'get-stdin-promise'
 import * as pkg from './package.json'
+import <%=camelize(project)%> from '<%=project%>'
 
 const extendedHelp = `
 
@@ -17,5 +18,5 @@ com
   .parse(process.argv)
 
 stdin.then(input => {
-  console.log('PROCESS INPUT HERE');
+  console.log(<%=camelize(project)%>(input))
 })
