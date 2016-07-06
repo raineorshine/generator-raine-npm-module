@@ -1,6 +1,9 @@
 .DS_Store
 node_modules
 npm-debug.log
->> if (babel) {
+>> if (babel && web) {
 bundle*.js
+>> }
+>> if (babel && !web) {
+dist
 >> }
