@@ -1,5 +1,5 @@
 import * as chai from 'chai'
-import * as <%=camelize(project)%> from '../index.js'
+import * as <%=camelize(project)%> from '../<%=babel ? 'src/' : ''%>index.js'
 const should = chai.should()
 
 describe('<%=camelize(project)%>', () => {

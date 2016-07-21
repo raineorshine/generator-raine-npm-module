@@ -103,6 +103,7 @@ module.exports = generators.Base.extend({
           'vinyl-buffer',
         ] : [],
         props.babel ? [
+          'babel-cli',
           'babel-register',
           'babel-preset-es2015',
         ] : [],

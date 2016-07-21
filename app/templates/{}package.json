@@ -20,11 +20,14 @@
   "engines": {
     "node": ">=0.12.0"
   },
+  >> if(babel) {
+  "main": "dist",
+  >> }
   "scripts": {
     >> if(babel) {
-    "test": "mocha --compilers babel-register"
+    "test": "mocha --compilers js:babel-register",
     >> } else {
-    "test": "mocha"
+    "test": "mocha",
     >> }
     >> if(babel && !gulp) {
     "build": "babel -d dist src",
