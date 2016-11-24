@@ -6,7 +6,7 @@
     "app"
   ],
   "license": "ISC",
-  "repository": "https://github.com/metaraine/generator-raine-npm-module",
+  "repository": "https://github.com/raineorshine/generator-raine-npm-module",
   "author": "metaraine",
   "engines": {
     "node": ">=0.10.0"
