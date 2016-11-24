@@ -27,7 +27,7 @@
     >> if(babel) {
     "test": "mocha --compilers js:babel-register",
     >> } else {
-    "test": "mocha",
+    "test": "mocha"
     >> }
     >> if(babel && !gulp) {
     "build": "babel -d dist src",
