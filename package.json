@@ -1,6 +1,6 @@
 {
   "name": "generator-raine-npm-module",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Raine's yoga generator for npm modules.",
   "files": [
     "app"
