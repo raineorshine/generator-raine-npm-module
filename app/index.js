@@ -1,187 +1,161 @@
-require('array.prototype.find')
-var generators = require('yeoman-generator')
-var path       = require('path')
-var camelize   = require('camelize')
-var prefixnote = require('prefixnote')
-var chalk      = require('chalk')
-var striate    = require('gulp-striate')
-var R          = require('ramda')
-var fileExists = require('file-exists')
-var indent     = require('indent-string')
-var pkg        = require('../package.json')
+const Generator = require('yeoman-generator')
+const path = require('path')
+const camelize = require('camelize')
+const prefixnote = require('prefixnote')
+const chalk = require('chalk')
+const striate = require('gulp-striate')
+const R = require('ramda')
+const indent = require('indent-string')
+const pkg = require('../package.json')
 
 // files that should never be copied
-var ignore = ['.DS_Store']
+const ignore = ['.DS_Store']
 
 // parse an array from a string
-function parseArray(str) {
-  return R.filter(R.identity, str.split(',').map(R.invoker(0, 'trim')))
-}
+const parseArray = str =>
+  R.filter(R.identity, str.split(',').map(R.invoker(0, 'trim')))
 
 // stringify an object and indent everything after the opening line
-function stringifyIndented(value, chr, n) {
-  return indent(JSON.stringify(value, null, n), chr, n).slice(chr.length * n)
-}
+const stringifyIndented = (value, chr, n) =>
+  indent(JSON.stringify(value, null, n), chr, n).slice(chr.length * n)
 
-// do a simple stringify on an object but use single quotes and spaces
-function stringifySimple(value) {
-  return JSON.stringify(value)
-    .replace(/"/g, '\'')
-    .replace(/,/g, ', ')
-}
+module.exports = class extends Generator {
 
-module.exports = generators.Base.extend({
+  constructor(args, opts) {
 
-  constructor: function () {
+    super(args, opts)
 
-    generators.Base.apply(this, arguments)
+    this.option('test')
 
-    // parse yoga.json and report error messages for missing/invalid
+    // if the package name is yogini then we are in creation mode
+    // which will recursively copy this generator itself and give it a new
+    // project name so that subsequent runs will generate from app/templates
+    this.createMode = !this.options.test && pkg.name === 'generator-yogini'
+
+    // parse yogini.json and report error messages for missing/invalid
     try {
-      this.yogaFile = require(fileExists('./yoga.json') ? './yoga.json' : './yoga.js')
-    }
-    catch(e) {
-      if(e.code === 'MODULE_NOT_FOUND') {
-        console.log(chalk.red('No yoga file found. Proceeding with simple copy.'))
+      if (this.createMode) {
+        this.yoginiFile = require('../create/yogini.json')
+      }
+      else if (this.options.test) {
+        this.yoginiFile = require('../test/testapp/yogini.json')
       }
       else {
-        console.log(chalk.red('Invalid yoga file'))
-        console.log(chalk.red(e))
-        throw e;
+        try {
+          this.yoginiFile = require('./yogini.json')
+        }
+        catch (e) {
+          if (e.code !== 'MODULE_NOT_FOUND') {
+            this.yoginiFile = require('./yogini.js')
+          }
+          else {
+            throw e
+          }
+        }
+      }
+    }
+    catch (e) {
+      if (e.code === 'MODULE_NOT_FOUND') {
+        console.warn(chalk.yellow('No yogini file found. Proceeding with simple copy.'))
+      }
+      else {
+        console.error(chalk.red('Invalid yogini file'))
+        console.error(chalk.red(e))
       }
     }
 
-  },
+  }
 
-  prompting: function () {
+  async prompting() {
 
-    var done = this.async()
-
-    if(this.yogaFile && !(this.yogaFile.prompts && this.yogaFile.prompts.length)) {
-      console.log(chalk.red('No prompts in yoga.json. Proceeding with simple copy.'))
+    if (this.yoginiFile && !(this.yoginiFile.prompts && this.yoginiFile.prompts.length)) {
+      console.warn(chalk.yellow('No prompts in yogini.json. Proceeding with simple copy.'))
       return
     }
 
-    // set the default project name to the destination folder name
-    var projectPrompt = this.yogaFile.prompts.find(R.propEq('name', 'project'))
-    if(projectPrompt) {
+    // set the default project name to the destination folder name and provide a validation function
+    if (this.createMode) {
+      const projectPrompt = this.yoginiFile.prompts.find(R.propEq('name', 'project'))
       projectPrompt.default = path.basename(this.env.cwd)
+      projectPrompt.validate = input =>
+        input === 'yogini' ? 'Cannot be named "yogini"' :
+        input.indexOf('generator-') !== 0 ? 'Must start with "generator-"' :
+        true
     }
 
-    this.prompt(this.yogaFile.prompts, function (props) {
+    const props = await this.prompt(this.yoginiFile.prompts)
 
-      // extract all possible choices from the yogafile
-      var allChoices = R.find(R.propEq('name', 'options'), this.yogaFile.prompts)
-        .choices.map(R.prop('value'))
-
-      // map each choice to true/false, whether it was selected or not
-      var choicesObject = R.fromPairs(allChoices.map(function (choice) {
-        return [choice, R.contains(choice, props.options)]
-      }))
-
-      // merge selected properties with defaults and converted options
-      props = R.mergeAll([{
-        // set some defaults for prompts that are skipped
-        isStatic: false,
-        cli: false,
-        camelize: camelize,
-      }, props, choicesObject])
-
-      // format keywords
-      props.keywordsFormatted = stringifyIndented(parseArray(props.keywords), ' ', 2)
-
-      // build and format dependencies
-      var dependencies = R.sortBy(R.identity, R.flatten([
-        props.gulp ? [
-          'gulp',
-          'browserify',
-          'gulp-cached',
-          'gulp-livereload',
-          'gulp-notify',
-          'gulp-sourcemaps',
-          'vinyl-source-stream',
-          'vinyl-buffer',
-        ] : [],
-        props.babel ? [
-          'babel-cli',
-          'babel-register',
-          'babel-preset-es2015',
-        ] : [],
-        props.babel && props.react ? [
-          'react',
-          'react-dom',
-          'babel-preset-react',
-        ] : [],
-        props.gulp && props.babel ? [
-          'babelify',
-        ] : [],
-        props.web ? [
-          'event-stream',
-          'gulp-autoprefixer',
-          'gulp-concat',
-          'gulp-minify-css',
-          'gulp-plumber',
-          'gulp-progeny',
-          'gulp-rename',
-          'gulp-sass',
-          'gulp-stylus',
-          'gulp-util',
-          'nib',
-        ] : [],
-        props.isStatic ? [
-          'gulp-jade',
-        ] : [],
-        props.cli ? [
-          'commander',
-          'get-stdin-promise',
-        ] : []
-      ]))
-      var dependenciesObject = R.zipObj(dependencies, R.repeat('*', dependencies.length))
-      props.dependenciesFormatted = stringifyIndented(dependenciesObject, ' ', 2)
-
-      var tasks = R.flatten([
-        'script',
-        props.web ? 'style' : [],
-        props.isStatic ? 'view' : []
-      ])
-      props.tasksFormatted = stringifySimple(tasks)
-
-      this.viewData = props;
-
-      done()
-    }.bind(this))
-  },
+    // populate viewData from the prompts and formatted values
+    this.viewData = R.merge(props, {
+      camelize: camelize,
+      keywordsFormatted: props.keywords ? stringifyIndented(parseArray(props.keywords), ' ', 2) : ''
+    })
+  }
 
   // Copies all files from the template directory to the destination path
   // parsing filenames using prefixnote and running them through striate
-  writing: function () {
+  writing() {
 
-    var done = this.async()
+    if (this.createMode) {
 
-    this.registerTransformStream(striate(this.viewData))
-
-    prefixnote.parseFiles(this.templatePath(), this.viewData)
-
-      // copy each file that is traversed
-      .on('data', function (file) {
-        var filename = path.basename(file.original)
-
-        // always ignore files like .DS_Store
-        if(ignore.indexOf(filename) === -1) {
-          var from = file.original
-          var to = this.destinationPath(path.relative(this.templatePath(), file.parsed))
-
-          // copy the file with templating
-          this.fs.copyTpl(from, to, this.viewData)
+      // copy yogini-generator itself
+      this.fs.copy(path.join(__dirname, '../'), this.destinationPath(), {
+        globOptions: {
+          dot: true,
+          ignore: [
+            '**/.DS_Store',
+            '**/.git',
+            '**/.git/**/*',
+            '**/node_modules',
+            '**/node_modules/**/*',
+            '**/test/**/*',
+            '**/create/**/*'
+          ]
         }
-      }.bind(this))
+      })
 
-      .on('end', done)
-      .on('error', done)
-  },
+      // copy the package.json and README
+      this.fs.copyTpl(
+        path.join(__dirname, '../create/{}package.json'),
+        this.destinationPath('package.json'),
+        this.viewData
+      )
 
-  end: function () {
-    this.installDependencies()
+      this.fs.copyTpl(
+        path.join(__dirname, '../create/README.md'),
+        this.destinationPath('README.md'),
+        this.viewData
+      )
+    }
+    else {
+
+      const done = this.async()
+
+      this.registerTransformStream(striate(this.viewData))
+
+      prefixnote.parseFiles(this.templatePath(), this.viewData)
+
+        // copy each file that is traversed
+        .on('data', file => {
+          const filename = path.basename(file.original)
+
+          // always ignore files like .DS_Store
+          if (ignore.indexOf(filename) === -1) {
+            const from = file.original
+            const to = this.destinationPath(path.relative(this.templatePath(), file.parsed))
+
+            // copy the file with templating
+            this.fs.copyTpl(from, to, this.viewData)
+          }
+        })
+
+        .on('end', done)
+        .on('error', done)
+    }
   }
 
-})
+  end() {
+    this.npmInstall()
+  }
+
+}
