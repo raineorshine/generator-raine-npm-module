@@ -7,7 +7,7 @@
 ## Install
 
 ```sh
-$ npm install --save <%=cli ? '-g ' : ''%><%=project%>
+$ npm install --save <%=options.cli ? '-g ' : ''%><%=project%>
 ```
 
 ## Usage

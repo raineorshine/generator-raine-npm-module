@@ -1,9 +1,9 @@
->> if(babel) {
+>> if(options.babel) {
 import * as chai from 'chai'
-import <%=camelize(project)%> from '../<%=babel ? 'src/' : ''%>index.js'
+import <%=camelize(project)%> from '../<%=options.babel ? 'src/' : ''%>index.js'
 >> } else {
 const chai = require('chai')
-const <%=camelize(project)%> = require('../<%=babel ? 'src/' : ''%>index.js')
+const <%=camelize(project)%> = require('../<%=options.babel ? 'src/' : ''%>index.js')
 >> }
 const should = chai.should()
 

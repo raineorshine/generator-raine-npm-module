@@ -20,33 +20,28 @@
   "engines": {
     "node": ">=0.12.0"
   },
-  >> if(babel) {
+  >> if(options.babel) {
   "main": "dist",
   >> }
   "scripts": {
-    >> if(babel) {
+    >> if(options.babel) {
     "test": "mocha --compilers js:babel-register",
     >> } else {
     "test": "mocha"
     >> }
-    >> if(babel && !gulp) {
+    >> if(options.babel && !options.gulp) {
     "build": "babel -d dist src",
     "postinstall": "npm run build",
     "watch": "nodemon -w src -w test -x \"npm run build && npm test\""
     >> }
-  },
-  >> if(cli) {
-  "bin": {
+  }
+  >> if(options.cli) {
+  ,"bin": {
     "<%=project%>": "bin.js"
   },
   "preferGlobal": true,
   >> }
-  >> if(keywords.length) {
-  "keywords": <%-keywordsFormatted%>,
+  >> if(keywords.length > 0) {
+  ,"keywords": <%-prettyArray(keywords)%>,
   >> }
-  "devDependencies": {
-    "chai": "*",
-    "mocha": "*"
-  },
-  "dependencies": <%-dependenciesFormatted%>
 }

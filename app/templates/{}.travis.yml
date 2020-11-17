@@ -10,7 +10,7 @@ sudo: false
 branches:
   only:
     - master
->> if(babel && !gulp) {
+>> if(options.babel && !options.gulp) {
 install:
   - npm install
   - npm run build

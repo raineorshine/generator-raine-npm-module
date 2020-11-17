@@ -5,10 +5,10 @@ const notify        = require('gulp-notify')
 const sourcemaps    = require('gulp-sourcemaps')
 const source        = require('vinyl-source-stream')
 const buffer        = require('vinyl-buffer')
->> if(babel) {
+>> if(options.babel) {
 const babel         = require('babelify')
 >> }
->> if(web) {
+>> if(options.web) {
 const es            = require('event-stream')
 const autoprefixer  = require('gulp-autoprefixer')
 const cache         = require('gulp-cached')
@@ -21,21 +21,21 @@ const sass          = require('gulp-sass')
 const stylus        = require('gulp-stylus')
 const nib           = require('nib')
 >> }
->> if(isStatic) {
+>> if(options.isStatic) {
 const jade          = require('gulp-jade')
 >> }
 >> // TODO: Prevent double escaping!
 const notifyOnError = <%-'<' + '%-\'notify.onError("<\' + \'%= error.message %\' + \'>")\'%' + '>'%>
 
 const config = {
-  >> if(web) {
+  >> if(options.web) {
   srcCss: 'src/style/**/*.css',
   srcStylus: 'src/style/**/*.styl',
   srcSass: 'src/style/**/*.s*ss',
   destCss: 'public/style',
   cssConcatTarget: 'main.css',
   >> }
-  >> if(isStatic) {
+  >> if(options.isStatic) {
   srcViews: 'src/*.jade',
   destViews: 'public',
   >> }
@@ -45,7 +45,7 @@ const config = {
   destBundle: 'bundle.js'
 }
 
->> if(web) {
+>> if(options.web) {
 gulp.task('style', () => {
 
   const css = gulp.src(config.srcCss)
@@ -71,7 +71,7 @@ gulp.task('style', () => {
 })
 
 >> }
->> if(isStatic) {
+>> if(options.isStatic) {
 gulp.task('view', () => {
   return gulp.src(config.srcViews)
     .pipe(cache('view'))
@@ -84,7 +84,7 @@ gulp.task('view', () => {
 >> }
 gulp.task('script', () => {
   return browserify(config.srcAppScript, { debug: true })
-    >> if(babel) {
+    >> if(options.babel) {
     .transform(babel, {
       presets: ['es2015', 'react']
     })
@@ -99,10 +99,10 @@ gulp.task('script', () => {
 })
 
 gulp.task('watch', () => {
-  >> if(web) {
+  >> if(options.web) {
   gulp.watch([config.srcStylus, config.srcSass], ['style'])
   >> }
-  >> if(isStatic) {
+  >> if(options.isStatic) {
   gulp.watch(config.srcViews, ['view'])
   >> }
   gulp.watch(config.srcScripts, ['script'])
