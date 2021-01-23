@@ -10,9 +10,6 @@
     >> if(authorName) {
     "name": "<%=authorName%>",
     >> }
-    >> if(authorEmail) {
-    "email": "<%=authorEmail%>",
-    >> }
     >> if(authorUrl) {
     "url": "<%=authorUrl%>"
     >> }
