@@ -9,11 +9,11 @@
   "repository": "https://github.com/raineorshine/generator-raine-npm-module",
   "author": "raineorshine",
   "engines": {
-    "node": ">10"
+    "node": ">12"
   },
   "dependencies": {
     "camelize": "^1.0.0",
-    "generator-yogini": "^1.5.0",
+    "generator-yogini": "^2.0.1",
     "indent-string": "^4.0.0"
   }
 }
