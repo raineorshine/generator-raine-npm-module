@@ -1,3 +1,4 @@
+const path = require('path')
 const camelize = require('camelize')
 const indent = require('indent-string')
 
@@ -31,11 +32,12 @@ module.exports = {
     prettyArray,
   }),
 
-  prompts: [
+  prompts: ({ env }) => [
     {
       type: 'text',
       name: 'project',
-      message: 'Project Name'
+      message: 'Project Name',
+      default: path.basename(env.cwd)
     },
     {
       type: 'text',
